@@ -115,6 +115,16 @@ Connecting to slave 192.168.1.146:502...
 
 Modbus TCP has **no authentication or encryption** by design. Anyone who can reach port 502 can read (and, on a writable slave, modify) registers. Keep this device on a trusted LAN/VLAN; **do not expose it to the public internet**.
 
+## Hardware Pictures
+
+![Hardware setup](images/hardware.jpg)
+
+- Waveshare ESP32S3 Relay 6-ch is MODBUSTCP SLAVE (also served as MODBUS RTU MASTER)
+Green and Yellow connected to XY-MD02 are modbusRTU A and B wire
+Red and Black are Voltage Supply (30 V)
+
+- ESP32C6 Super Mini Below is MODBUSTCP MASTER
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
