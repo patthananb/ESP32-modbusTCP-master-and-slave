@@ -48,6 +48,7 @@
 #include <HardwareSerial.h>
 
 #include "secrets.h"
+#include "regmap.h"
 #include "web_ui.h"
 
 /* --- mDNS hostname --- */
@@ -71,34 +72,10 @@
 #define POLL_INTERVAL_MS         2000
 #define WIFI_RECONNECT_INTERVAL  5000
 
-/* --- Register map limits --- */
-#define MAX_REGS        32
-#define DESC_LEN        48
-
-/* --- Sources --- */
-enum Source {
-    SRC_TEMP_C = 0,
-    SRC_HUMIDITY,
-    SRC_STATUS,
-    SRC_POLL_COUNT,
-    SRC_UPTIME_S,
-    SRC_WIFI_RSSI,
-    SRC_FREE_HEAP,
-    SRC_COUNT
-};
+/* --- Source / type name tables (enums + struct live in regmap.h) --- */
 static const char* const SRC_NAMES[SRC_COUNT] = {
     "temp_c", "humidity", "status", "poll_count",
     "uptime_s", "wifi_rssi", "free_heap"
-};
-
-/* --- Data types --- */
-enum DType {
-    DT_UINT16 = 0,
-    DT_INT16,
-    DT_UINT32,
-    DT_INT32,
-    DT_FLOAT32,
-    DT_COUNT
 };
 static const char* const DT_NAMES[DT_COUNT] = {
     "uint16", "int16", "uint32", "int32", "float32"
@@ -106,15 +83,6 @@ static const char* const DT_NAMES[DT_COUNT] = {
 static int dtypeRegSize(uint8_t t) {
     return (t == DT_UINT32 || t == DT_INT32 || t == DT_FLOAT32) ? 2 : 1;
 }
-
-/* --- Register entry --- */
-struct RegEntry {
-    uint16_t address;
-    uint8_t  source;
-    uint8_t  type;
-    float    scale;
-    char     description[DESC_LEN];
-};
 
 static RegEntry regTable[MAX_REGS];
 static size_t   regCount = 0;
@@ -502,7 +470,7 @@ static void connectWiFi() {
  * ============================================================ */
 void setup() {
     Serial.begin(115200);
-    while (!Serial) delay(10);
+    //while (!Serial) delay(10);
 
     Serial.println();
     Serial.println("===========================================");
