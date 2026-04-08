@@ -9,11 +9,31 @@ A two-node Modbus RTU → TCP gateway demo using ESP32 boards. An **ESP32-S3** p
 ## Sketches
 
 ### `esp32s3_tcp_slave/`
-Runs on a **Waveshare ESP32-S3-Relay-6CH**. Acts as both:
+Runs on a **Waveshare ESP32-S3-Relay-6CH**. Acts as:
 - **Modbus RTU master** to the XY-MD02 sensor (FC04, addr `0x01`, register `0x0001`, qty 2) on UART1 (TX=GPIO17, RX=GPIO18, 9600 8N1).
 - **Modbus TCP slave** on port 502, advertised over mDNS as `esp32s3-modbus.local`.
+- **HTTP config server** on port 80 — open `http://esp32s3-modbus.local/` in a browser to edit the holding-register map (which source feeds which register, type, scale, description). Saved to flash; survives reboots.
 
 Polls the sensor every 2 seconds, manually builds the RTU frame and validates CRC-16. Auto-reconnects WiFi if the link drops.
+
+#### Configurable register map
+The map is no longer hard-coded. Each entry has:
+- **address** — Modbus holding-register address (32-bit types span two consecutive registers, big-endian word order)
+- **source** — `temp_c`, `humidity`, `status`, `poll_count`, `uptime_s`, `wifi_rssi`, or `free_heap`
+- **type** — `uint16`, `int16`, `uint32`, `int32`, or `float32`
+- **scale** — multiplier applied before packing (e.g. `10` to store `24.3 °C` as `243` in an int16)
+- **description** — free-form label for humans (visible in the web UI, also exposed via `GET /api/config`)
+
+The defaults match the original hard-coded map (HR0=temp×10, HR1=humi×10, HR2=status, HR3=poll_count). Use the **Reset to defaults** button in the web UI to restore.
+
+#### HTTP API
+| Method | Path                  | Purpose                                       |
+|--------|-----------------------|-----------------------------------------------|
+| GET    | `/`                   | Web UI (single HTML page)                     |
+| GET    | `/api/config`         | Current register table + enum metadata (JSON) |
+| POST   | `/api/config`         | Replace register table; saves and reboots    |
+| POST   | `/api/config/reset`   | Restore defaults; saves and reboots          |
+| GET    | `/api/live`           | Current register values keyed by address     |
 
 ### `esp32c6_tcp_master/`
 Runs on an **ESP32-C6 Dev Module**. Connects to the same WiFi, resolves the slave by mDNS hostname, and polls every 3 seconds via FC03. Includes per-transaction timeouts, TCP-handshake wait, and WiFi reconnect.
