@@ -145,6 +145,18 @@ Red and Black are Voltage Supply (30 V)
 
 - ESP32C6 Super Mini Below is MODBUSTCP MASTER
 
+### Using mbpoll to poll the data command
+- command
+```bash
+    mbpoll -0 -m tcp -a 1 -r 0 -c 4 -t 4 esp32slaveip
+```
+- Flags breakdown
+  - 0 (Zero-Based): Forces 0-indexed protocol addressing. Without this, -r 0 throws an "out of range" error because standard PLC addressing starts at 1 (e.g., 40001).
+  - m tcp (Mode): Uses Modbus TCP over network sockets instead of RTU over serial.
+  - a 1 (Unit ID): Sets the MBAP header Slave ID to 1.
+  - r 0 (Reference): Starts reading at register address 0.
+  - c 4 (Count): Requests 4 sequential registers.
+  - t 4 (Data Type): Specifies Function Code 03 (Read Holding Registers) as standard 16-bit words.
 ## License
 
 MIT — see [LICENSE](LICENSE).
